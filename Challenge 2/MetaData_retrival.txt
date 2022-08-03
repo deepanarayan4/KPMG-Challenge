@@ -1,0 +1,29 @@
+Step 1: 
+   1. Use AWS cli to modify the instance metadata options if you need to work on existing instance:
+        aws ec2 modify-instance-metadata-options \
+            --instance-id <Instance ID> \
+            --http-tokens optional \
+            --http-endpoint enabled
+
+   2. Also, WE can use AWS console to enable the metadata data options while creating instance.
+      Under Advanced Details on the Configure Instance Details page, for Metadata accessible, select Enabled.
+
+Step 2:
+Linux Command :
+
+1. Generate Token:
+    TOKEN=`curl -X PUT "http://<Instance IP Address>/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
+
+2. Run the followind command to retreive the data
+   curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://<Instance IP Address>/latest/meta-data/ | jq
+   
+   Or Below command without Token
+   
+   curl -s -H Metadata:true --noproxy "*" "http://<Instance IP Address>/metadata/instance?api-version=2021-02-01" | jq
+
+   The jq utility is available in many cases, but not all. If the jq utility is missing, use | python -m json.tool instead.
+
+PowerShell Command:
+
+Invoke-RestMethod -Headers @{"Metadata"="true"} -Method GET -NoProxy -Uri "http://<Instance IP Address>/metadata/instance?api-version=2021-02-01" | ConvertTo-Json -Depth 64
+
